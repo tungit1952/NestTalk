@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {User} from "./entities/user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Repository} from "typeorm";
+import { emailToUsername } from "../utils/helpers";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UserService {
@@ -11,8 +13,26 @@ export class UserService {
       @InjectRepository(User)
       private readonly usersRepository: Repository<User>,
   ) {}
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto) {
+    const isUnique = await this.isEmailUnique(createUserDto.email);
+    if (!isUnique) {
+      throw new BadRequestException('Email is already in use.');
+    }
+    if (!createUserDto.username) {
+      createUserDto.username = emailToUsername(createUserDto.email)
+    }
+    createUserDto.password = await this.hashPassword(createUserDto.password)
+    const newUser = this.usersRepository.create(createUserDto);
+    try {
+      await this.usersRepository.save(newUser);
+      const { password, ...result } = newUser;
+      return {
+        message: 'User created successfully',
+        user: result,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to create user.');
+    }
   }
 
   findAll() {
@@ -23,15 +43,20 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
-  findByUserName(username:string): Promise<User> {
-    return this.usersRepository.findOneBy({username});
+  findByEmail(email:string): Promise<User> {
+    return this.usersRepository.findOneBy({email});
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
+  }
+
+  async isEmailUnique(email: string): Promise<boolean> {
+    const user = await this.usersRepository.findOneBy({email});
+    return !user;
   }
 }

@@ -1,9 +1,12 @@
 import { IsBoolean, IsDate, IsEmail, IsNumber, IsOptional, IsString, Length, Matches } from 'class-validator';
 
 export class CreateUserDto {
-    @IsString()
+    @IsOptional()
     @Length(4, 20)
     username: string;
+
+    @IsEmail({}, { message: 'Email không đúng định dạng' })
+    email: string;
 
     @IsString({ message: 'Password phải là một chuỗi' })
     @Length(8, 100)
@@ -14,7 +17,6 @@ export class CreateUserDto {
     firstName?: string;
 
     @IsString({ message: 'Tên phải là một chuỗi' })
-    @IsOptional()
     lastName?: string;
 
     @IsDate()
@@ -29,9 +31,6 @@ export class CreateUserDto {
     @IsOptional()
     avatar?: string;
 
-    @IsEmail({}, { message: 'Email không đúng định dạng' })
-    @IsOptional()
-    email?: string;
 
     @IsString()
     @Matches(/^[0-9]+$/, { message: 'Số điện thoại không đúng định dạng' })

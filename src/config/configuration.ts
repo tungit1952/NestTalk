@@ -13,5 +13,5 @@ export default () => ({
         synchronize: true,
         logging: true,
     },
-    secret_jwt:process.env.SECRET_JWT
+    secret_jwt:process.env.SECRET_JWT_KEY
 });

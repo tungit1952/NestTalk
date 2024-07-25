@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import {ConfigService} from "@nestjs/config";
-import {UserService} from "../user/user.service";
-import {JwtService} from "@nestjs/jwt";
-import * as bcrypt from 'bcrypt';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { UserService } from "../user/user.service";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcrypt";
+import { LoginUserDto } from "./dto/login-user.dto";
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -10,8 +12,8 @@ export class AuthService {
       private userService: UserService,
       private jwtService: JwtService
   ) {}
-  async validateUser(username:string, password:string):Promise<any> {
-    const user = await this.userService.findByUserName(username);
+  async validateUser(email:string, password:string):Promise<any> {
+    const user = await this.userService.findByEmail(email);
     if(user && await bcrypt.compare(password, user.password)) {
       const { password, ...result } = user;
       return result;
@@ -19,19 +21,26 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async login(loginUserDto: LoginUserDto) {
+    const user = await this.validateUser(loginUserDto.email, loginUserDto.password)
+    if(!user){
+        throw new UnauthorizedException('User does not exists');
+    }
+    const token = this.jwtService.sign(
+      { sub: user.id },
+    );
+    const { password, ...resultUser } = user;
     return {
-      access_token: this.jwtService.sign(payload),
-    };
+      message:'Welcome! You have logged in successfully',
+      data:{...resultUser, token}
+    }
   }
 
   async register(user: any) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
-    const newUser = await this.userService.create({
+    return await this.userService.create({
       ...user,
       password: hashedPassword,
     });
-    return newUser;
   }
 }

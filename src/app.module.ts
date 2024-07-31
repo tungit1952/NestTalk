@@ -8,6 +8,7 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
 import {TypeOrmModule, TypeOrmModuleOptions} from "@nestjs/typeorm";
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { FriendModule } from './friend/friend.module';
 import { ProjectModule } from './project/project.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { ProjectModule } from './project/project.module';
     }),
     UserModule,
     AuthModule,
+    FriendModule,
     ProjectModule,
   ],
   controllers: [AppController],

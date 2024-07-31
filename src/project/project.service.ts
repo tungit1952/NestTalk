@@ -1,26 +1,58 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { InjectRepository } from "@nestjs/typeorm";
+import { Project } from "./entities/project.entity";
+import { Repository } from "typeorm";
+import { User } from "../user/entities/user.entity";
 
 @Injectable()
 export class ProjectService {
-  create(createProjectDto: CreateProjectDto) {
-    return 'This action adds a new project';
+  constructor(
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
+  ) {
+  }
+  async create(createProjectDto: CreateProjectDto) {
+    const isUnique = await this.isKeyUnique(createProjectDto.key);
+    if (!isUnique) {
+      throw new BadRequestException('Key is already in use.');
+    }
+    try {
+      const project = await this.projectRepository.save(createProjectDto);
+      return {
+        message: 'Project created successfully',
+        user: project,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to create project.');
+    }
   }
 
-  findAll() {
-    return `This action returns all project`;
+  async update(id: number, updateProjectDto: UpdateProjectDto) {
+    const project = await this.projectRepository.findOneBy({ id });
+    if (!project) {
+      throw new BadRequestException('Project not found.');
+    }
+    if (updateProjectDto.key && updateProjectDto.key !== project.key) {
+      const isUnique = await this.isKeyUnique(updateProjectDto.key);
+      if (!isUnique) {
+        throw new BadRequestException('Key is already in use.');
+      }
+    }
+    Object.assign(project, updateProjectDto);
+    try {
+      const updatedProject = await this.projectRepository.save(project);
+      return {
+        message: 'Project updated successfully',
+        project: updatedProject,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to update project.');
+    }
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} project`;
-  }
-
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} project`;
+  async isKeyUnique(key: string): Promise<boolean> {
+    const project = await this.projectRepository.findOneBy({key});
+    return !project;
   }
 }

@@ -26,7 +26,7 @@ export class AuthService {
     if(!user){
         throw new UnauthorizedException('User does not exists');
     }
-    const token = this.jwtService.sign(
+    const token = await this.jwtService.signAsync(
       { sub: user.id },
     );
     const { password, ...resultUser } = user;

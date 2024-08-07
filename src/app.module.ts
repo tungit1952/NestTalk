@@ -12,6 +12,7 @@ import { FriendModule } from './friend/friend.module';
 import { ProjectModule } from './project/project.module';
 import { FormModule } from './form/form.module';
 import { GroupModule } from './group/group.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { GroupModule } from './group/group.module';
     ProjectModule,
     FormModule,
     GroupModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

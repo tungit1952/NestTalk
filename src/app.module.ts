@@ -13,6 +13,9 @@ import { ProjectModule } from './project/project.module';
 import { FormModule } from './form/form.module';
 import { GroupModule } from './group/group.module';
 import { ChatModule } from './chat/chat.module';
+import { MessageModule } from './message/message.module';
+import { RoomChatModule } from './room-chat/room-chat.module';
+import {EventEmitterModule} from "@nestjs/event-emitter";
 
 @Module({
   imports: [
@@ -35,6 +38,9 @@ import { ChatModule } from './chat/chat.module';
     FormModule,
     GroupModule,
     ChatModule,
+    MessageModule,
+    RoomChatModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

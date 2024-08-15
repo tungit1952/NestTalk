@@ -15,4 +15,5 @@ export class GroupController {
     console.log(user)
     return this.groupService.create(createGroupDto);
   }
+
 }

@@ -16,9 +16,17 @@ import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { RoomChatModule } from './room-chat/room-chat.module';
 import {EventEmitterModule} from "@nestjs/event-emitter";
+import { GatewayModule } from './gateway/gateway.module';
+import {WSService} from "./gateway/gateway.gateway";
+import { RedisModule } from './redis/redis.module';
+import {RedisService} from "./redis/redis.service";
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal:true
+    }),
     LoggerModule.forRoot(loggerParams),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -41,8 +49,9 @@ import {EventEmitterModule} from "@nestjs/event-emitter";
     MessageModule,
     RoomChatModule,
     EventEmitterModule.forRoot(),
+    RedisModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, WSService],
 })
 export class AppModule {}

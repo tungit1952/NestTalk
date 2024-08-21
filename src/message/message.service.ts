@@ -36,7 +36,7 @@ export class MessageService implements IMessageService{
         if (!roomId) roomChat = await this.roomChatService.create(user, recipient)
         else{
             roomChat = await this.roomChatService.findOne(roomId)
-            if(roomChat) throw new RoomChatNotFound()
+            if(!roomChat) throw new RoomChatNotFound()
         }
         const message = this.messageRepository.create({
             content,

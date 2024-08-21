@@ -1,5 +1,14 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import { Friend } from "../../friend/entities/friend.entity";
+import {Message} from "../../message/entities/message.entity";
 
 @Entity()
 export class User {
@@ -59,4 +68,8 @@ export class User {
 
     @OneToMany(() => Friend, (friend) => friend.friend)
     friendOf: Friend[];
+
+    @OneToMany(() => Message, (message) => message.createdBy)
+    @JoinColumn()
+    messages: Message[];
 }

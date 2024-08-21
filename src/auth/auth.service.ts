@@ -1,16 +1,20 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {Inject, Injectable, UnauthorizedException} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { LoginUserDto } from "./dto/login-user.dto";
+import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import {Cache} from "cache-manager";
 
 @Injectable()
 export class AuthService {
   constructor(
+      @Inject(CACHE_MANAGER) private cacheManager: Cache,
       private configService: ConfigService,
       private userService: UserService,
       private jwtService: JwtService
+
   ) {}
   async validateUser(email:string, password:string):Promise<any> {
     const user = await this.userService.findByEmail(email);
@@ -26,7 +30,8 @@ export class AuthService {
     if(!user){
         throw new UnauthorizedException('User does not exists');
     }
-    const token = this.jwtService.sign(
+    console.log(user);
+    const token = await this.jwtService.signAsync(
       { sub: user.id },
     );
     const { password, ...resultUser } = user;

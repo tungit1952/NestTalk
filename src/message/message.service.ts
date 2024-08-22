@@ -31,13 +31,11 @@ export class MessageService implements IMessageService{
         console.log("receiverId: " + receiverId)
         const recipient = await this.userService.findOne(receiverId)
         if(!recipient) throw new RecipientNotFound
-
-        //Nếu chưa có roomId thì case là lần đầu nhắn tin
         let roomChat: RoomChat;
-        if (!roomId) roomChat = await this.roomChatService.create(user, recipient)
-        else{
-            roomChat = await this.roomChatService.findOne(roomId)
-            if(!roomChat) throw new RoomChatNotFound()
+        roomChat = await this.roomChatService.findRoom(user.id, recipient.id);
+        if(!roomChat){
+            //Nếu chưa có roomChat thì case là lần đầu nhắn tin
+            roomChat = await this.roomChatService.create(user, recipient)
         }
         const message = this.messageRepository.create({
             content,
@@ -47,7 +45,7 @@ export class MessageService implements IMessageService{
         const newMessage = await this.messageRepository.save(message)
         roomChat.lastMessage = newMessage
         const newRoomChat = await this.roomChatService.save(roomChat)
-        return { message: newMessage, roomChat: newRoomChat };
+        return { message: newMessage, roomChat: newRoomChat,recipient };
     }
 
     async findByRoom(id:number, user:User, page:number){

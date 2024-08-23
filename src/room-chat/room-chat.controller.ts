@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Inject } from "@nestjs/common";
+import {Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Inject, Query} from "@nestjs/common";
 import { RoomChatService } from "./room-chat.service";
 import { CreateRoomChatDto } from "./dto/create-room-chat.dto";
 import { UpdateRoomChatDto } from "./dto/update-room-chat.dto";
@@ -18,10 +18,10 @@ export class RoomChatController {
   @Post("find")
   @UseGuards(JwtGuard)
   async find(@AuthUser() user: User, @Body() { id }: any) {
-    const room = await this.roomChatService.findRoom(user.id, id);
-    if (room) return {
+    const roomChat = await this.roomChatService.findRoom(user.id, id);
+    if (roomChat) return {
       message: "Tìm thấy room",
-      data: room
+      data: roomChat
     };
     else return {
       message: "Không tìm thấy room",
@@ -30,4 +30,13 @@ export class RoomChatController {
 
   }
 
+  @Get('list')
+  @UseGuards(JwtGuard)
+  async list(@AuthUser() user: User, @Query() {page}: any){
+      const roomsChat =  await this.roomChatService.getByUser(user.id, parseInt(page));
+      return {
+        message: "Lấy danh sách thành công",
+        data: roomsChat
+      }
+  }
 }

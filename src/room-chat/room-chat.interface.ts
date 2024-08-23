@@ -9,4 +9,6 @@ export interface IRoomChatService {
     save(roomChat: RoomChat): Promise<any>;
 
     findRoom(userId1:number, userId2:number): Promise<RoomChat>
+
+    getByUser(userId: number, page: number): Promise<RoomChat[]>
 }

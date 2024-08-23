@@ -7,6 +7,7 @@ import { Repository } from "typeorm";
 import { User } from "../user/entities/user.entity";
 import { IRoomChatService } from "./room-chat.interface";
 import { RecipientNotFound } from "../user/exceptions/RecipientNotFound";
+import {RoomChatNotFound} from "./exceptions/RoomChatNotFound";
 
 @Injectable()
 export class RoomChatService implements IRoomChatService {
@@ -34,5 +35,28 @@ export class RoomChatService implements IRoomChatService {
         { userId1, userId2 }
       ).getOne();
 
+  }
+
+  async getByUser(userId: number, page: number = 1): Promise<RoomChat[]> {
+    const limit  = 30
+    const offset = (page - 1) * limit;
+    try{
+      return await this.roomChatRepository.createQueryBuilder('roomChat')
+          .leftJoin('roomChat.createdBy', 'createdBy')
+          .leftJoin('roomChat.recipient', 'recipient')
+          .leftJoinAndSelect('roomChat.lastMessage', 'lastMessage')
+          .addSelect([
+            'createdBy.id','createdBy.avatar','createdBy.firstName','createdBy.lastName','createdBy.username',
+            'recipient.id','recipient.avatar','recipient.firstName','recipient.lastName','recipient.username',
+            'CASE WHEN roomChat.createdById = :userId THEN recipient.id ELSE createdBy.id END AS otherUserId'
+          ])
+          .where('roomChat.createdById = :userId OR roomChat.recipientId = :userId',{userId})
+          .orderBy('roomChat.updatedAt','DESC')
+          .skip(offset)
+          .take(limit)
+          .getMany()
+    } catch (e){
+      throw RoomChatNotFound
+    }
   }
 }

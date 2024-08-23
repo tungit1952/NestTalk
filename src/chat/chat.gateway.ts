@@ -24,7 +24,6 @@ import {JwtService} from "@nestjs/jwt";
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private server: Server;
   private intervalId: NodeJS.Timeout;
-  private client;
   constructor(
       @Inject(CACHE_MANAGER) private cacheManager: Cache,
       private readonly chatService: ChatService,
@@ -39,17 +38,25 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
-    this.client = client
-    const token = client.handshake.query.token as string;
-    if(token !== 'null' &&  token!== undefined){
-      const payload = await this.jwtService.verifyAsync(token);
-      const userId = payload.sub
-      await this.cacheManager.set(`nest_base_client_${userId}`, client.id, 0);
-      console.log(`User connected: ${userId} with socket ID: ${client.id}`);
-    }else{
-      client.disconnect();
+    let auth = false
+    client.on('authenticate', async data => {
+      try {
+        const payload = await this.jwtService.verifyAsync(data.token);
+        const userId = payload.sub
+        await this.cacheManager.set(`nest_base_client_${userId}`, client.id, 0);
+        console.log(`User connected: ${userId} with socket ID: ${client.id}`);
+        auth = true
+      }catch (e) {
+        console.log(e);
+        client.disconnect();
+      }
+    })
+    setTimeout(function(){
+      if (!auth) {
+        client.disconnect();
+      }
+    }, 1000);
     }
-  }
 
   handleDisconnect(client: Socket) {
     console.log('Client disconnected ' + client.id);
